@@ -80,25 +80,25 @@ model Chat {
   created_At DateTime @default(now())
   updated_At DateTime @updatedAt
 
-  User     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ChatRoom ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
-  Message  Message[]
+  User     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ChatRoom ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 }
 
 model Message {
-  id       String @id @default(cuid())
-  senderId String
-  chatId   String
-  message  String
-  Chat     Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  User     User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  senderId   String
+  chatRoomId String
+  message    String
+  ChatRoom       ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  User       User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model ChatRoom {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   name       String?
-  isGroup    Boolean  @default(false)
-  created_At DateTime @default(now())
-  updated_At DateTime @updatedAt
+  isGroup    Boolean   @default(false)
+  created_At DateTime  @default(now())
+  updated_At DateTime  @updatedAt
   Chat       Chat[]
+  Message    Message[]
 }

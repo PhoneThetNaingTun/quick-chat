@@ -38,6 +38,8 @@ const AppLayout = ({ children }: Prop) => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "Chat" },
         async (payload: any) => {
+          console.log(payload.new);
+
           if (payload.new.userId === user?.id) {
             try {
               // Fetch the related ChatRoom
@@ -138,42 +140,22 @@ const AppLayout = ({ children }: Prop) => {
         { event: "INSERT", schema: "public", table: "Message" },
         async (payload: any) => {
           try {
-            const { data: chat, error: chatError } = await supabase
-              .from("Chat")
+            console.log(payload.new);
+
+            // Fetch ChatRoom details
+            const { data: ChatRoom, error: chatRoomError } = await supabase
+              .from("ChatRoom")
               .select("*")
-              .eq("id", payload.new.chatId)
+              .eq("id", payload.new.chatRoomId)
               .single();
-
-            if (chatError || !chat) {
-              console.error(
-                "Error fetching chat:",
-                chatError || "Chat not found"
+            if (chatRoomError || !ChatRoom) {
+              throw new Error(
+                `Error fetching ChatRoom: ${chatRoomError?.message}`
               );
-              return;
             }
+            console.log(ChatRoom);
 
-            const { data: chats, error: chatsError } = await supabase
-              .from("Chat")
-              .select("*")
-              .eq("chatRoomId", chat.chatRoomId);
-
-            if (chatsError || !chats || chats.length === 0) {
-              console.error(
-                "Error fetching chats in chatRoom:",
-                chatsError || "No chats found"
-              );
-              return;
-            }
-
-            // Find the other user's chat entry
-            const otherChat = chats.find(
-              (chatEntry) => chatEntry.userId !== user?.id
-            );
-            if (!otherChat) {
-              console.warn("Other user not found in this chatRoom");
-              return;
-            }
-
+            // Fetch sender details
             const { data: sender, error: senderError } = await supabase
               .from("users")
               .select("*")
@@ -181,36 +163,39 @@ const AppLayout = ({ children }: Prop) => {
               .single();
 
             if (senderError || !sender) {
-              console.error(
-                "Error fetching sender:",
-                senderError || "Sender not found"
-              );
-              return;
+              throw new Error(`Error fetching sender: ${senderError?.message}`);
             }
 
-            // Enrich the message with sender data
-            const enrichedMessage = {
-              ...payload.new,
-              sender,
-            };
+            // Fetch associated chats for the chatroom
+            const { data: Chat, error: ChatError } = await supabase
+              .from("Chat")
+              .select("*")
+              .eq("chatRoomId", ChatRoom.id);
 
-            // Dispatch the new message to the Redux store
-            dispatch(addMessage(enrichedMessage));
+            if (ChatError || !Chat || Chat.length === 0) {
+              throw new Error(`Error fetching Chat: ${ChatError?.message}`);
+            }
 
-            // Show a toast notification if the message is from the other user
-            if (payload.new.senderId !== user?.id) {
-              toast({
-                title: "New Message",
-                description: `"${sender.name}" sent you a message`,
-              });
+            if (Chat[0].userId === user?.id || Chat[1].userId === user?.id) {
+              const enrichedMessage = {
+                ...payload.new,
+                sender,
+              };
+
+              dispatch(addMessage(enrichedMessage));
+              if (payload.new.senderId !== user?.id) {
+                toast({
+                  title: "New Message",
+                  description: `"${sender.name}" sent you a message`,
+                });
+              }
             }
           } catch (error) {
-            console.error("Error in messageSendSubscription handler:", error);
+            console.error("Error in message subscription:", error);
           }
         }
       )
       .subscribe();
-
     return () => {
       friendRequestSubscription.unsubscribe();
       friendCancelSubscription.unsubscribe();
@@ -228,7 +213,7 @@ const AppLayout = ({ children }: Prop) => {
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 sticky top-0">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="-ml-1" />
               </div>

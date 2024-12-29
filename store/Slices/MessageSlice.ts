@@ -11,7 +11,6 @@ export const SendMessage = createAsyncThunk(
   async (payload: NewMessagePayload, thunkapi) => {
     thunkapi.dispatch(setLoading(true));
     const { onSuccess, onError } = payload;
-    console.log(payload);
     const response = await fetch("/api/messages", {
       method: "POST",
       body: JSON.stringify(payload),

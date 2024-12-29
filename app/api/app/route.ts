@@ -30,7 +30,7 @@ export async function GET() {
         include: { User: true },
       });
       const messages = await prisma.message.findMany({
-        where: { chatId: { in: chats.map((item) => item.id) } },
+        where: { chatRoomId: { in: chatRoomIds } },
       });
       return NextResponse.json({
         user: userFromDb,

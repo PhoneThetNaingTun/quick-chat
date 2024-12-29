@@ -1,12 +1,12 @@
-import { Chat } from "@prisma/client";
+import { ChatRoom } from "@prisma/client";
 import { BaseOption } from "./app";
 
 export type message = {
   message: string;
   id: string;
   senderId: string;
-  chatId: string;
-  Chat?: Chat;
+  chatRoomId: string;
+  ChatRoom?: ChatRoom;
 };
 export interface messageSlice {
   messages: message[];
@@ -16,5 +16,5 @@ export interface messageSlice {
 export interface NewMessagePayload extends BaseOption {
   message: string;
   senderId: string;
-  chatId: string;
+  chatRoomId: string;
 }

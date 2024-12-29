@@ -17,8 +17,11 @@ const ChatRoomSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
+    addChatRoom: (state, action: PayloadAction<ChatRoom>) => {
+      state.chatrooms.push(action.payload);
+    },
   },
 });
 
-export const { setChatRooms, setLoading } = ChatRoomSlice.actions;
+export const { setChatRooms, setLoading, addChatRoom } = ChatRoomSlice.actions;
 export default ChatRoomSlice.reducer;

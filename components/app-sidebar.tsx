@@ -29,23 +29,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return null;
   }
   const data = {
-    teams: [
-      {
-        name: "Quick Chat",
-        logo: GalleryVerticalEnd,
-        plan: "Enterprise",
-      },
-      {
-        name: "Acme Corp.",
-        logo: AudioWaveform,
-        plan: "Startup",
-      },
-      {
-        name: "Evil Corp.",
-        logo: Command,
-        plan: "Free",
-      },
-    ],
+    teams: {
+      name: "Quick Chat",
+      logo: GalleryVerticalEnd,
+      plan: "Developed By Phone Thet Naing Tun",
+    },
+
     navMain: [
       {
         title: "Conversations",

@@ -21,6 +21,7 @@ export const NewRequestDialog = () => {
   const { loading } = useAppSelector((state) => state.FriendRequests);
   const { user } = useAppSelector((state) => state.App);
   const [email, setEmail] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
   const handleAddFriend = () => {
     if (!email) {
       return toast({ title: "Enter email!", variant: "destructive" });
@@ -32,6 +33,7 @@ export const NewRequestDialog = () => {
         onSuccess: (message) => {
           toast({ title: message, variant: "default" });
           setEmail("");
+          setOpen(false);
         },
         onError: (error) => {
           return toast({ title: error, variant: "destructive" });
@@ -40,7 +42,7 @@ export const NewRequestDialog = () => {
     );
   };
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>Add New Friends</Button>
       </DialogTrigger>

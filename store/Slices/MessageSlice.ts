@@ -20,6 +20,7 @@ export const SendMessage = createAsyncThunk(
     const { message, error } = dataFromServer;
     message && onSuccess && onSuccess(message);
     error && onError && onError(error);
+    thunkapi.dispatch(setLoading(false));
   }
 );
 

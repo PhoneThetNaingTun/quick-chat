@@ -5,22 +5,25 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { SendMessage } from "@/store/Slices/MessageSlice";
-import { SendIcon } from "lucide-react";
+import { RefreshCcw, SendIcon } from "lucide-react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
 export const ChatRoomClient = () => {
   const param = useParams();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const { chatRoomId } = param;
   const { toast } = useToast();
   const { chats } = useAppSelector((state) => state.Chats);
   const { user } = useAppSelector((state) => state.App);
-  const { messages } = useAppSelector((state) => state.Messages);
+  const { messages, loading } = useAppSelector((state) => state.Messages);
+  const { chatrooms } = useAppSelector((state) => state.ChatRooms);
 
   const [message, setMessage] = useState<string>("");
 
+  const ChatRoom = chatrooms.find((item) => item.id === chatRoomId);
   const Chat = chats.find((item) => item.chatRoomId === chatRoomId);
   const friend = Chat?.User;
 
@@ -37,6 +40,15 @@ export const ChatRoomClient = () => {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [Messages]);
+  useEffect(() => {
+    if (!ChatRoom) {
+      router.push("/conversations");
+    }
+  }, [ChatRoom]);
+
+  if (!ChatRoom) {
+    return null;
+  }
 
   const handleSendMessage = () => {
     if (!message) {
@@ -59,8 +71,8 @@ export const ChatRoomClient = () => {
   };
 
   return (
-    <div className=" max-h-full">
-      <div className="px-10 h-full">
+    <div className=" ">
+      <div className="px-10 messageHeight">
         {Messages.length > 0 ? (
           Messages.map((item) => (
             <div key={item.id} className="flex w-full py-2">
@@ -101,14 +113,22 @@ export const ChatRoomClient = () => {
       </div>
 
       <div ref={messageEndRef} />
-      <div className="sticky bottom-0 left-0 right-0 flex gap-2 items-center p-4 bg-white border-t">
+      <div className="sticky bottom-0 right-0 left-0  flex gap-2 items-center p-4 bg-white  border-t">
         <Input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type your message"
+          disabled={loading}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") handleSendMessage();
+          }}
         />
-        <Button onClick={handleSendMessage} disabled={!message}>
-          <SendIcon />
+        <Button onClick={handleSendMessage} disabled={!message || loading}>
+          {loading ? (
+            <RefreshCcw className="w-4 h-4 animate-spin" />
+          ) : (
+            <SendIcon />
+          )}
         </Button>
       </div>
     </div>

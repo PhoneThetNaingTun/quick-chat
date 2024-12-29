@@ -3,6 +3,7 @@ import AppSliceReducter from "./Slices/AppSlice";
 import FriendRequestSliceReducer from "./Slices/FriendRequestSlice";
 import ChatSliceReducer from "./Slices/ChatSlice";
 import MessageSliceReducer from "./Slices/MessageSlice";
+import ChatRoomSliceReducer from "./Slices/ChatRoomSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     FriendRequests: FriendRequestSliceReducer,
     Chats: ChatSliceReducer,
     Messages: MessageSliceReducer,
+    ChatRooms: ChatRoomSliceReducer,
   },
 });
 

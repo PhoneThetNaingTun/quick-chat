@@ -15,6 +15,7 @@ import { addRequests, removeRequests } from "@/store/Slices/FriendRequestSlice";
 import { useToast } from "@/hooks/use-toast";
 import { addChat } from "@/store/Slices/ChatSlice";
 import { addMessage } from "@/store/Slices/MessageSlice";
+import { addChatRoom } from "@/store/Slices/ChatRoomSlice";
 
 interface Prop {
   children: ReactNode;
@@ -38,51 +39,47 @@ const AppLayout = ({ children }: Prop) => {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "Chat" },
         async (payload: any) => {
-          console.log(payload.new);
-
           if (payload.new.userId === user?.id) {
             try {
-              // Fetch the related ChatRoom
-              const { data: ChatRoom, error: chatRoomError } = await supabase
+              const { data: ChatRoom, error: ChatRoomError } = await supabase
                 .from("ChatRoom")
                 .select("*")
                 .eq("id", payload.new.chatRoomId)
                 .single();
 
-              if (chatRoomError)
+              if (ChatRoomError)
                 throw new Error(
-                  `Error fetching ChatRoom: ${chatRoomError.message}`
+                  `Error fetching ChatRoom: ${ChatRoomError.message}`
                 );
 
-              // Fetch the related Chat (with userId not equal to current userId)
-              const { data: Chat, error: chatError } = await supabase
+              const { data: ChatData, error: ChatDataError } = await supabase
                 .from("Chat")
                 .select("*")
-                .eq("chatRoomId", ChatRoom?.id)
+                .eq("chatRoomId", ChatRoom.id)
                 .neq("userId", user?.id)
                 .single();
 
-              if (chatError)
-                throw new Error(`Error fetching Chat: ${chatError.message}`);
+              if (ChatDataError)
+                throw new Error(
+                  `Error fetching ChatData: ${ChatDataError.message}`
+                );
 
-              // Fetch the User associated with the Chat
               const { data: User, error: userError } = await supabase
                 .from("users")
                 .select("*")
-                .eq("id", Chat.userId)
+                .eq("id", ChatData.userId)
                 .single();
 
               if (userError)
                 throw new Error(`Error fetching User: ${userError.message}`);
 
-              // Enrich the Chat with User data
               const enrichedChat = {
-                ...Chat,
-                User, // Add the User data to the Chat
+                ...ChatData,
+                User,
               };
 
-              // Dispatch the enriched chat data
               dispatch(addChat(enrichedChat));
+              dispatch(addChatRoom(ChatRoom));
             } catch (error) {
               // Catch any errors and log them
               console.error("Error in chat subscription:", error);

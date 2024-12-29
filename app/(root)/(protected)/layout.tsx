@@ -40,50 +40,68 @@ const AppLayout = ({ children }: Prop) => {
         { event: "INSERT", schema: "public", table: "Chat" },
         async (payload: any) => {
           if (payload.new.userId === user?.id) {
-            try {
-              const { data: ChatRoom, error: ChatRoomError } = await supabase
-                .from("ChatRoom")
-                .select("*")
-                .eq("id", payload.new.chatRoomId)
-                .single();
+            let attempt = 0;
+            const maxAttempts = 5;
 
-              if (ChatRoomError)
-                throw new Error(
-                  `Error fetching ChatRoom: ${ChatRoomError.message}`
-                );
+            const executeWithRetry = async () => {
+              try {
+                const { data: ChatRoom, error: ChatRoomError } = await supabase
+                  .from("ChatRoom")
+                  .select("*")
+                  .eq("id", payload.new.chatRoomId)
+                  .single();
 
-              const { data: ChatData, error: ChatDataError } = await supabase
-                .from("Chat")
-                .select("*")
-                .eq("chatRoomId", ChatRoom.id)
-                .neq("userId", user?.id)
-                .single();
+                if (ChatRoomError)
+                  throw new Error(
+                    `Error fetching ChatRoom: ${ChatRoomError.message}`
+                  );
 
-              if (ChatDataError)
-                throw new Error(
-                  `Error fetching ChatData: ${ChatDataError.message}`
-                );
+                const { data: ChatData, error: ChatDataError } = await supabase
+                  .from("Chat")
+                  .select("*")
+                  .eq("chatRoomId", ChatRoom.id)
+                  .neq("userId", user?.id)
+                  .single();
 
-              const { data: User, error: userError } = await supabase
-                .from("users")
-                .select("*")
-                .eq("id", ChatData.userId)
-                .single();
+                if (ChatDataError)
+                  throw new Error(
+                    `Error fetching ChatData: ${ChatDataError.message}`
+                  );
 
-              if (userError)
-                throw new Error(`Error fetching User: ${userError.message}`);
+                const { data: User, error: userError } = await supabase
+                  .from("users")
+                  .select("*")
+                  .eq("id", ChatData.userId)
+                  .single();
 
-              const enrichedChat = {
-                ...ChatData,
-                User,
-              };
+                if (userError)
+                  throw new Error(`Error fetching User: ${userError.message}`);
 
-              dispatch(addChat(enrichedChat));
-              dispatch(addChatRoom(ChatRoom));
-            } catch (error) {
-              // Catch any errors and log them
-              console.error("Error in chat subscription:", error);
-            }
+                const enrichedChat = {
+                  ...ChatData,
+                  User,
+                };
+
+                dispatch(addChat(enrichedChat));
+                dispatch(addChatRoom(ChatRoom));
+              } catch (error) {
+                if (attempt < maxAttempts) {
+                  attempt++;
+                  console.error(
+                    `Attempt ${attempt} failed, retrying...`,
+                    error
+                  );
+                  setTimeout(executeWithRetry, 1000); // Wait 1 second before retry
+                } else {
+                  console.error(
+                    "Max retries reached, could not fetch chat data:",
+                    error
+                  );
+                }
+              }
+            };
+
+            executeWithRetry();
           }
         }
       )

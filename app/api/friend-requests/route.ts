@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { error } from "console";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -61,7 +60,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const NewRequest = await prisma.friendRequest.create({
+  await prisma.friendRequest.create({
     data: {
       senderId,
       receiverId: receiver.id,

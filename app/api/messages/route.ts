@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   if (!ChatExist) {
     return NextResponse.json({ error: "Chat not found" }, { status: 404 });
   }
-  const newMessage = await prisma.message.create({
+  await prisma.message.create({
     data: { message, senderId, chatId },
   });
   return NextResponse.json({ message: "Sent" });

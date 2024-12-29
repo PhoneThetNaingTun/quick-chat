@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { SendMessage } from "@/store/Slices/MessageSlice";
 import { SendIcon } from "lucide-react";
@@ -38,7 +37,7 @@ export const ChatRoomClient = () => {
         chatId: forMessage?.id as string,
         message,
         senderId: user?.id as string,
-        onSuccess: (message) => {
+        onSuccess: () => {
           setMessage("");
         },
         onError: (error) => {
@@ -51,23 +50,6 @@ export const ChatRoomClient = () => {
   return (
     <div>
       <div className="px-10">
-        {/* {Messages.map((item) => (
-          <div
-            className={cn(
-              "flex gap-2 my-10",
-              item.senderId === user?.id && "flex-row-reverse"
-            )}
-          >
-            <p
-              className={cn(
-                `text-start px-5 py-2 bg-gray-600 rounded-full text-white w-fit`,
-                item.senderId === user?.id && `text-end`
-              )}
-            >
-              {item.message}
-            </p>
-          </div>
-        ))} */}
         {Messages.map((item) => (
           <div key={item.id} className="flex w-full py-2">
             {item.senderId === user?.id ? (
